@@ -36,10 +36,6 @@
   "A password manager for Emacs"
   :group 'password-vault+)
 
-(defcustom password-vault+-passwords nil
-  "An alist containing the passwords."
-  :group 'password-vault+)
-
 (defcustom password-vault+-secret-file nil
   "The modules to load the passwords from."
   :group 'password-vault+)
@@ -48,7 +44,8 @@
   "Signals that the secret file should be read again.")
 
 (defvar password-vault+-passwords nil
-  "An alist of (name . password).")
+  "An alist containing the passwords in the form of
+ (name . password).")
 
 (defvar password-vault+-helm-source nil
   "")
