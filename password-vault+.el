@@ -4,7 +4,7 @@
 ;;; URL: http://github.com/PuercoPop/password-vault+.el
 ;;; Version: 0.0.1
 ;;; Keywords: password, productivity
-;;; Package-Requires: ((cl-lib "0.2") (emacs "24") (helm "20150414.50))
+;;; Package-Requires: ((cl-lib "0.2") (emacs "24") (helm "20150414.50"))
 
 ;;; Commentary:
 
@@ -44,21 +44,27 @@
   "Signals that the secret file should be read again.")
 
 (defvar password-vault+-passwords nil
-  "An alist containing the passwords in the form of
- (name . password).")
+  "An alist mapping from name to password.")
 
-(defvar password-vault+-helm-source nil
-  "")
+(defvar password-vault+-helm-source nil)
+
+(defvar password-vault+--hooks-queue nil
+  "A list of modules that need to the `after-save-hook' installed.")
+
+(defun password-vault+--install-hooks (modules)
+  "Add an `after-save-hook' so that every module in MODULES is
+marked as dirty upon saving."
+  (dolist (module modules)
+    (with-current-buffer (find-file-noselect (locate-library module))
+      (add-hook 'after-save-hook
+                (lambda ()
+                  (setq password-vault+-reparse-secret-file t))))))
 
 ;;;###autoload
 (defun password-vault+-register-secrets-file (module)
-  "Load the setq forms to the MODULE to the password-vault+s."
+  "Load the setq forms to the MODULE to the password-vault+."
   (add-to-list 'password-vault+-secret-file module)
-
-  (with-current-buffer (find-file-noselect (locate-library module))
-    (add-hook 'after-save-hook
-              (lambda ()
-                (setq password-vault+-reparse-secret-file t)))))
+  (add-to-list 'password-vault+--hooks-queue module))
 
 (defun password-vault+-update-passwords-helper (module)
   "Locate MODULE and add them to the alist."
@@ -97,6 +103,10 @@
 
   (unless interprogram-cut-function
     (error "Interprogram clipboard must be enabled"))
+
+  (when password-vault+--hooks-queue
+    (password-vault+--install-hooks password-vault+--hooks-queue)
+    (setf password-vault+--hooks-queue nil))
 
   (unless password-vault+-passwords
     (password-vault+-update-passwords))
