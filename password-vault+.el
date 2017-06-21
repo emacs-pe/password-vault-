@@ -93,7 +93,7 @@ marked as dirty upon saving."
         `((name . "Password Vault+")
           (candidates . ,password-vault+-passwords)
           (action . (lambda (candidate)
-                      (apply interprogram-cut-function (list candidate))
+                      (funcall 'interprogram-cut-function candidate)
                       "Password Copied to Clipboard")))))
 
 ;;;###autoload
